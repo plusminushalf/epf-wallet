@@ -1,25 +1,14 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import preact from '@preact/preset-vite';
 import { crx } from '@crxjs/vite-plugin';
-import manifest from './src/manifest/config';
-
-import { resolve } from 'path';
-
-const root = resolve(__dirname, 'src');
-const outDir = resolve(__dirname, 'dist');
+import manifest from './manifest.config';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  root,
-  build: {
-    outDir,
-    emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        main: resolve(root, 'popup', 'index.html'),
-        webapp: resolve(root, 'webapp', 'index.html'),
-      },
-    },
-  },
-  plugins: [react(), crx({ manifest })],
+  plugins: [
+    preact(),
+    crx({
+      manifest,
+    }),
+  ],
 });
