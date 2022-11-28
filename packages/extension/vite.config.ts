@@ -12,6 +12,9 @@ export default defineConfig({
       },
     },
   },
+  define: {
+    global: {},
+  },
   plugins: [
     preact(),
     crx({

@@ -1,11 +1,11 @@
 import { useState } from 'preact/hooks';
 import preactLogo from '../assets/preact.svg';
-import './app.css';
 
 export function App() {
   const [count, setCount] = useState(0);
   const [active, setActive] = useState(false);
 
+  console.log('[CONTENT SCRIPT] 4337 wallet');
   if (!active) return <></>;
 
   return (
