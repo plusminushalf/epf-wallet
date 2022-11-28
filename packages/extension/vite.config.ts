@@ -5,6 +5,13 @@ import manifest from './manifest.config';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        app: 'src/app/index.html',
+      },
+    },
+  },
   plugins: [
     preact(),
     crx({

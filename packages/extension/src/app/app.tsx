@@ -4,9 +4,6 @@ import './app.css';
 
 export function App() {
   const [count, setCount] = useState(0);
-  const [active, setActive] = useState(false);
-
-  if (!active) return <></>;
 
   return (
     <>
@@ -18,7 +15,7 @@ export function App() {
           <img src={preactLogo} class="logo preact" alt="Preact logo" />
         </a>
       </div>
-      <h1>Vite + content + Preact</h1>
+      <h1>Vite + Preact</h1>
       <div class="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}

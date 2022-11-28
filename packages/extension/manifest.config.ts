@@ -11,10 +11,7 @@ const [major, minor, patch, label = '0'] = version
 
 export default defineManifest(async (env) => ({
   manifest_version: 3,
-  name:
-    env.mode === 'staging'
-      ? '[INTERNAL] CRXJS Power Tools'
-      : 'CRXJS Power Tools',
+  name: env.mode === 'staging' ? '[INTERNAL] 4337 Wallet' : '4337 Wallet',
   // up to four numbers separated by dots
   version: `${major}.${minor}.${patch}.${label}`,
   // semver is OK in "version_name"
