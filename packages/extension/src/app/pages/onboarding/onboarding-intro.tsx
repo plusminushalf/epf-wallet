@@ -1,6 +1,5 @@
 import { PageProps } from '@app/pages/types';
 import viteLogo from '@assets/vite.svg';
-import { Button } from '@components/button';
 import { route } from 'preact-router';
 
 export type OnboardingIntroPageProps = {} & PageProps;
@@ -23,9 +22,12 @@ export function OnboardingIntro({}: OnboardingIntroPageProps) {
         </p>
         <p class="pt-6">The future is bright</p>
       </div>
-      <Button onClick={onClickGetStarted} class="pt-8">
-        Get Started
-      </Button>
+      <div class="flex space-x-10 justify-center pt-10">
+        <button class="btn-secondary">Recover account</button>
+        <button onClick={onClickGetStarted} class="btn-primary">
+          Create new account
+        </button>
+      </div>
     </div>
   );
 }

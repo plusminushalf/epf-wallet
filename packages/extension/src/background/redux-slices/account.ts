@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { DomainName, HexString, URI } from '../types/common';
-import { EVMNetwork } from '../types/network';
-import { AccountBalance } from '../types/account';
+import { DomainName, HexString, URI } from '@common-types/common';
+import { EVMNetwork } from '@common-types/network';
+import { AccountBalance } from '@common-types/account';
 
 type AccountData = {
   address: HexString;
@@ -46,7 +46,7 @@ const initialState = {
   },
 } as AccountState;
 
-const counterSlice = createSlice({
+const accountSlice = createSlice({
   name: 'account',
   initialState,
   reducers: {
@@ -56,5 +56,5 @@ const counterSlice = createSlice({
   },
 });
 
-export const { incrementByAmount } = counterSlice.actions;
-export default counterSlice.reducer;
+export const { incrementByAmount } = accountSlice.actions;
+export default accountSlice.reducer;

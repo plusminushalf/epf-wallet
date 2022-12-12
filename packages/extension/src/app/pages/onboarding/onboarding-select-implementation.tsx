@@ -1,5 +1,6 @@
 import { PageProps } from '@app/pages/types';
-import { Button } from '@components/button';
+import { SCWImplementation } from '@common-types/scw-implementation';
+import { DEFAULT_SCW_IMPLEMENTATION } from '@constants';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
 import { route } from 'preact-router';
 import { useCallback } from 'preact/hooks';
@@ -10,6 +11,13 @@ export function OnboardingSelectImplementation({}: OnboardingSelectImplementatio
   const onBackClick = useCallback(() => {
     route('/onboarding/intro', true);
   }, []);
+
+  const selectImplementation = useCallback(
+    (implementation: SCWImplementation) => {
+      route(`/onboarding/load-scw-implementation/${implementation}`);
+    },
+    []
+  );
 
   return (
     <div class="pt-10 pb-8">
@@ -39,11 +47,14 @@ export function OnboardingSelectImplementation({}: OnboardingSelectImplementatio
             Read about accounts &rarr;
           </a>
         </p>
-        <div class="flex space-x-6">
-          <Button type="secondary" class="pt-8">
-            Explore accounts
-          </Button>
-          <Button class="pt-8">Continue</Button>
+        <div class="flex space-x-6 pt-8">
+          <button class="btn-secondary">Explore accounts</button>
+          <button
+            onClick={() => selectImplementation(DEFAULT_SCW_IMPLEMENTATION)}
+            class="btn-primary"
+          >
+            Continue
+          </button>
         </div>
       </div>
     </div>

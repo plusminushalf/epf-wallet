@@ -23,6 +23,9 @@ export default defineManifest(async (env) => ({
     service_worker: 'src/background/index.ts',
     type: 'module',
   },
+  sandbox: {
+    pages: ['sandbox.html'],
+  },
   content_scripts: [
     {
       js: ['src/content/index.tsx'],

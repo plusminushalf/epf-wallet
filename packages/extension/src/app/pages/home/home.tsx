@@ -5,7 +5,7 @@ import { PageProps } from '../types';
 
 export type OnboardingPageProps = {} & PageProps;
 
-export default function Onboarding({}: OnboardingPageProps) {
+export function Home({}: OnboardingPageProps) {
   const hasAccounts = useBackgroundSelector(
     (state) => getAddressCount(state) > 0
   );
