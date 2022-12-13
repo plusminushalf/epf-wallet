@@ -1,5 +1,5 @@
 import ROUTES, { RenderRoutes } from '@app/routes/routes';
-import { useAreKeyringsUnlocked } from '@hooks';
+import { useAreKeyringsUnlocked } from '@background/hooks';
 import { useEffect } from 'preact/hooks';
 import { PageProps } from '../types';
 

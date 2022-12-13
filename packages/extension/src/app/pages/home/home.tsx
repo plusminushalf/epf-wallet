@@ -1,6 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { getAddressCount } from '@background/redux-slices/selectors/accountSelectors';
-import { useBackgroundSelector } from '@hooks';
+import { useBackgroundSelector } from '@background/hooks';
 import { PageProps } from '../types';
 
 export type OnboardingPageProps = {} & PageProps;

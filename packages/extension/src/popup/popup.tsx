@@ -1,6 +1,6 @@
 /// <reference types="chrome"/>
 import { useCallback, useEffect } from 'preact/hooks';
-import { useBackgroundSelector } from '@hooks';
+import { useBackgroundSelector } from '@background/hooks';
 import { getAddressCount } from '@background/redux-slices/selectors/accountSelectors';
 import './popup.css';
 

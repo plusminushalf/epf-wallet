@@ -1,6 +1,6 @@
 import { PageProps } from '@app/pages/types';
 import { SCWImplementation } from '@common-types/scw-implementation';
-import { useAreKeyringsUnlocked } from '@hooks';
+import { useAreKeyringsUnlocked } from '@background/hooks';
 
 export type LoadSCWImplementationPageProps = {
   implementation?: SCWImplementation;
