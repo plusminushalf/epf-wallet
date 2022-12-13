@@ -1,17 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer components {
-  .btn {
-    @apply inline-block px-6 py-2.5 font-medium text-sm leading-tight uppercase rounded transition duration-150 ease-in-out;
-  }
-
-  .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg;
-  }
-
-  .btn-secondary {
-    @apply btn border text-blue-600 border-blue-600 shadow-md hover:shadow-lg focus:text-blue-700 focus:border-blue-700 hover:text-blue-700 hover:border-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 hover:border-blue-800 active:text-blue-800 active:shadow-lg;
-  }
-}

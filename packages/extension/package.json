@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "devtools": "redux-devtools --hostname=localhost --port=8000 --open"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.13",
     "@reduxjs/toolkit": "^1.9.0",
+    "daisyui": "^2.43.2",
     "eth-keyring-controller": "^8.1.0",
     "history": "^5.3.0",
     "normalize.css": "^8.0.1",
@@ -23,6 +25,9 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.7",
     "@preact/preset-vite": "^2.4.0",
+    "@redux-devtools/cli": "^1.0.7",
+    "@redux-devtools/remote": "^0.7.5",
+    "@tailwindcss/typography": "^0.5.8",
     "@types/chrome": "^0.0.203",
     "@types/node": "^18.11.12",
     "autoprefixer": "^10.4.13",

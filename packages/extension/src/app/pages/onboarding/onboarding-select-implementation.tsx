@@ -48,10 +48,10 @@ export function OnboardingSelectImplementation({}: OnboardingSelectImplementatio
           </a>
         </p>
         <div class="flex space-x-6 pt-8">
-          <button class="btn-secondary">Explore accounts</button>
+          <button class="btn btn-outline btn-primary">Explore accounts</button>
           <button
             onClick={() => selectImplementation(DEFAULT_SCW_IMPLEMENTATION)}
-            class="btn-primary"
+            class="btn btn-primary"
           >
             Continue
           </button>

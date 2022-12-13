@@ -13,7 +13,7 @@ export function OnboardingIntro({}: OnboardingIntroPageProps) {
     <div class="pt-10 pb-8">
       <div class="justify-center items-center flex flex-col space-y-4">
         <img src={viteLogo} class="h-10" alt="Preact logo" />
-        <h1 class="text-xl">Welcome to 4337 extension</h1>
+        <h1>Welcome to 4337 extension</h1>
       </div>
       <div class="pt-10">
         <p>
@@ -23,8 +23,8 @@ export function OnboardingIntro({}: OnboardingIntroPageProps) {
         <p class="pt-6">The future is bright</p>
       </div>
       <div class="flex space-x-10 justify-center pt-10">
-        <button class="btn-secondary">Recover account</button>
-        <button onClick={onClickGetStarted} class="btn-primary">
+        <button class="btn btn-outline btn-primary">Recover account</button>
+        <button onClick={onClickGetStarted} class="btn btn-primary">
           Create new account
         </button>
       </div>

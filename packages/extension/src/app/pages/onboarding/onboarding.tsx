@@ -13,7 +13,9 @@ export function Onboarding({}: OnboardingPageProps) {
   return (
     <div class="h-screen flex justify-center align-middle flex-col max-w-screen-sm mx-auto">
       <div class="w-full relative bg-white shadow-xl ring-1 ring-gray-900/5 sm:mx-auto sm:rounded-lg sm:px-10">
-        <RenderRoutes routes={routes} />
+        <article class="prose prose-zinc">
+          <RenderRoutes routes={routes} />
+        </article>
       </div>
     </div>
   );
