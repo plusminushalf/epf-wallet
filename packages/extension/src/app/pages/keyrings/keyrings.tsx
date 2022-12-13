@@ -1,7 +1,15 @@
+import ROUTES, { RenderRoutes } from '@app/routes/routes';
 import { PageProps } from '../types';
 
 export type KeyringsProps = {} & PageProps;
 
 export function Keyrings({}: KeyringsProps) {
-  return <div>keyrings</div>;
+  const routes = ROUTES[Keyrings.name].routes;
+
+  return (
+    <div>
+      keyrings
+      <RenderRoutes routes={routes} />
+    </div>
+  );
 }
