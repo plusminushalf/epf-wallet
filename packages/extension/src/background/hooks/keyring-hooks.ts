@@ -2,12 +2,8 @@ import { useBackgroundSelector } from './redux-hooks';
 import { route, useRouter } from 'preact-router';
 import { selectKeyringStatus } from '@background/redux-slices/selectors/keyringsSelectors';
 import { useEffect } from 'preact/hooks';
-import ROUTES from '@app/routes/routes';
-import {
-  Keyrings,
-  SetKeyringPassword,
-  UnlockKeyring,
-} from '@app/pages/keyrings';
+import RoutesMap from '@app/routes/routes';
+import { SetKeyringPassword, UnlockKeyring } from '@app/pages/keyrings';
 
 export const useAreKeyringsUnlocked = (redirectIfNot: boolean): boolean => {
   const keyringStatus = useBackgroundSelector(selectKeyringStatus);
@@ -15,10 +11,9 @@ export const useAreKeyringsUnlocked = (redirectIfNot: boolean): boolean => {
 
   let redirectTarget: string | undefined;
   if (keyringStatus === 'uninitialized') {
-    redirectTarget =
-      ROUTES[Keyrings.name].routes?.[SetKeyringPassword.name].path;
+    redirectTarget = RoutesMap[SetKeyringPassword.name].path;
   } else if (keyringStatus === 'locked') {
-    redirectTarget = ROUTES[Keyrings.name].routes?.[UnlockKeyring.name].path;
+    redirectTarget = RoutesMap[UnlockKeyring.name].path;
   }
 
   useEffect(() => {

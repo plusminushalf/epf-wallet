@@ -42,14 +42,26 @@ packages/extension
 │   └───app                  # The App UI code. This project has a light popup and a heavy full desktop app.
 |   │   └───pages            # The app pages
 |   │   └───routes           # The route definations
+|   │   ...
+|   │
 │   └───background           # Background script for the extension, This contains the redux confiduration & core services like keyring.
 |   │   └───hooks            # Custom hooks that can be used by app as well as popup.
 |   │   └───redux-slices     # We use @reduxjs/toolkit to create slices to interact with redux state
 |   │   └───services         # Services that will be used by background, example keyring service to keep private keys & other signing information secure
 |   │   └───utils            # Common utils for app, popup, & background
+|   │   ...
+|   │
 │   └───components           # Common UI components that can be used in app or popup
+|   │   ...
+|   │
 │   └───content              # The content script that is injected into the browser tab to give access to window.ethereum
+|   │   ...
+|   │
 │   └───popup                # The extensions popup UI code.
+|   │   ...
+|   │
 │   └───sandbox              # The sandbox environment to load multiple SCW implementation modules
+|   │   ...
+|   │
 
 ```

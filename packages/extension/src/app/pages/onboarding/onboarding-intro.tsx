@@ -1,32 +1,36 @@
 import { PageProps } from '@app/pages/types';
+import RoutesMap from '@app/routes/routes';
 import viteLogo from '@assets/vite.svg';
 import { route } from 'preact-router';
+import { OnboardingSelectImplementation } from './onboarding-select-implementation';
 
 export type OnboardingIntroPageProps = {} & PageProps;
 
 export function OnboardingIntro({}: OnboardingIntroPageProps) {
   const onClickGetStarted = () => {
-    route('/onboarding/select-implementation');
+    route(RoutesMap[OnboardingSelectImplementation.name].path);
   };
 
   return (
-    <div class="pt-10 pb-8">
-      <div class="justify-center items-center flex flex-col space-y-4">
-        <img src={viteLogo} class="h-10" alt="Preact logo" />
-        <h1>Welcome to 4337 extension</h1>
-      </div>
-      <div class="pt-10">
-        <p>
-          Start your account abstraction journey today, no seed phrases, no
-          private keys.
-        </p>
-        <p class="pt-6">The future is bright</p>
-      </div>
-      <div class="flex space-x-10 justify-center pt-10">
-        <button class="btn btn-outline btn-primary">Recover account</button>
-        <button onClick={onClickGetStarted} class="btn btn-primary">
-          Create new account
-        </button>
+    <div class="h-screen flex justify-center align-middle flex-col max-w-screen-sm mx-auto">
+      <div class="card bg-base-100 drop-shadow">
+        <div class="card-body items-center text-center">
+          <img src={viteLogo} class="h-10" alt="Preact logo" />
+          <h2 class="card-title">Welcome to 4337 extension!</h2>
+          <p class="mt-4">
+            Start your account abstraction journey today, no seed phrases, no
+            private keys.
+          </p>
+          <p>The future is bright</p>
+          <div class="card-actions mt-6 space-x-6">
+            <button class="btn btn-outline btn-secondary">
+              Recover account
+            </button>
+            <button onClick={onClickGetStarted} class="btn btn-primary">
+              Create new account
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

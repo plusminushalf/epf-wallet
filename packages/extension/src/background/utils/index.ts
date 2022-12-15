@@ -11,3 +11,18 @@ export function encodeJSON(input: unknown): string {
     return value;
   });
 }
+
+/**
+ * Decode a JSON string, as encoded by `encodeJSON`, including bigint support.
+ * Note that the functions aren't invertible, as `encodeJSON` discards
+ * `undefined`.
+ *
+ * @param input a string output from `encodeJSON`
+ */
+export function decodeJSON(input: string): unknown {
+  return JSON.parse(input, (_, value) =>
+    value !== null && typeof value === 'object' && 'B_I_G_I_N_T' in value
+      ? BigInt(value.B_I_G_I_N_T)
+      : value
+  );
+}
