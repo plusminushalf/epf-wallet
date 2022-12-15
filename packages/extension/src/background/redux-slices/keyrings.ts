@@ -1,5 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Keyring, KeyringMetadata } from '@common-types/keyrings';
+import { createBackgroundAsyncThunk } from './utils';
+import KeyringService from '@background/services/keyring';
 
 type KeyringsState = {
   keyrings: Keyring[];
@@ -32,3 +34,18 @@ const keyringsSlice = createSlice({
 
 export const { incrementByAmount } = keyringsSlice.actions;
 export default keyringsSlice.reducer;
+
+/**
+ * -------------------------------
+ * Background Actions
+ * -------------------------------
+ */
+
+export const createPassword = createBackgroundAsyncThunk(
+  'keyrings/createPassword',
+  async (password: string, { extra: { mainServiceManager } }) => {
+    await mainServiceManager
+      .getService(KeyringService.name)
+      .emitter.emit('createPassword', password);
+  }
+);

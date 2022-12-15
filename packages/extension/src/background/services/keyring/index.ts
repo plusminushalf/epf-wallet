@@ -3,6 +3,7 @@ import BaseService from '../base';
 import { ServiceLifecycleEvents } from '../types';
 
 interface Events extends ServiceLifecycleEvents {
+  createPassword: string;
   locked: boolean;
   keyrings: {
     keyrings: Keyring[];
@@ -25,7 +26,15 @@ export default class KeyringService extends BaseService<Events> {
         },
       },
     });
+
+    this.regiserEventListeners();
   }
+
+  regiserEventListeners = () => {
+    this.emitter.on('createPassword', this.createPassword);
+  };
+
+  createPassword = () => {};
 
   static async create() {
     return new KeyringService();

@@ -4,6 +4,16 @@ import { selectKeyringStatus } from '@background/redux-slices/selectors/keyrings
 import { useEffect } from 'preact/hooks';
 import RoutesMap from '@app/routes/routes';
 import { SetKeyringPassword, UnlockKeyring } from '@app/pages/keyrings';
+import { BackgroundDispatch } from '@background/services/main';
+import { useDispatch } from 'react-redux';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AsyncifyFn<K> = K extends (...args: any[]) => any
+  ? (...args: Parameters<K>) => Promise<ReturnType<K>>
+  : never;
+
+export const useBackgroundDispatch = (): AsyncifyFn<BackgroundDispatch> =>
+  useDispatch<BackgroundDispatch>() as AsyncifyFn<BackgroundDispatch>;
 
 export const useAreKeyringsUnlocked = (redirectIfNot: boolean): boolean => {
   const keyringStatus = useBackgroundSelector(selectKeyringStatus);

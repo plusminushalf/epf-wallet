@@ -3,9 +3,11 @@ import { decodeJSON, encodeJSON } from '@background/utils';
 import { configureStore, isPlain } from '@reduxjs/toolkit';
 import { devToolsEnhancer } from '@redux-devtools/remote';
 import BaseService from './base';
-import { wrapStore } from 'webext-redux';
+import { alias, wrapStore } from 'webext-redux';
 import storage from 'redux-persist/lib/storage';
-import { persistReducer, createTransform } from 'redux-persist';
+import { /*persistReducer,*/ createTransform } from 'redux-persist';
+import KeyringService from './keyring';
+import { allAliases } from '@background/redux-slices/utils';
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -44,11 +46,11 @@ const persistConfig = {
   transforms: [CustomJSONTransform],
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-const initializeStore = (main: MainServiceRegisterer) =>
+const initializeStore = (mainServiceManager: MainServiceManager) =>
   configureStore({
-    reducer: persistedReducer,
+    reducer: rootReducer,
     devTools: false,
     middleware: (getDefaultMiddleware) => {
       const middleware = getDefaultMiddleware({
@@ -56,8 +58,11 @@ const initializeStore = (main: MainServiceRegisterer) =>
           isSerializable: (value: unknown) =>
             isPlain(value) || typeof value === 'bigint',
         },
-        thunk: { extraArgument: { main } },
+        thunk: { extraArgument: { mainServiceManager } },
       });
+
+      middleware.unshift(alias(allAliases));
+
       return middleware;
     },
     enhancers:
@@ -75,19 +80,28 @@ const initializeStore = (main: MainServiceRegisterer) =>
   });
 
 type ReduxStoreType = ReturnType<typeof initializeStore>;
+export type BackgroundDispatch = MainServiceManager['store']['dispatch'];
 
-export default class MainServiceRegisterer extends BaseService<never> {
+export default class MainServiceManager extends BaseService<never> {
   store: ReduxStoreType;
 
-  constructor() {
+  constructor(private services: { [serviceName: string]: BaseService<any> }) {
     super();
     this.store = initializeStore(this);
     wrapStore(this.store);
   }
 
   static async create() {
-    return new MainServiceRegisterer();
+    const keyringService = await KeyringService.create();
+
+    return new this({
+      [KeyringService.name]: keyringService,
+    });
   }
+
+  getService = (name: string) => {
+    return this.services[name];
+  };
 
   _startService = async (): Promise<void> => {};
   _stopService = async (): Promise<void> => {};

@@ -1,14 +1,20 @@
-import { useAreKeyringsUnlocked } from '@background/hooks';
+import {
+  useAreKeyringsUnlocked,
+  useBackgroundDispatch,
+} from '@background/hooks';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { OnboardingIntro } from '@app/pages/onboarding';
 import RoutesMap from '@app/routes/routes';
 import { route } from 'preact-router';
+import { createPassword } from '@background/redux-slices/keyrings';
 
 export function SetKeyringPassword() {
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false);
 
-  const [inputValue, setInputValue] = useState('');
+  const [password, setPassword] = useState('');
+
+  const dispatch = useBackgroundDispatch();
 
   useEffect(() => {
     if (areKeyringsUnlocked) {
@@ -20,7 +26,10 @@ export function SetKeyringPassword() {
     route(RoutesMap[OnboardingIntro.name].path, true);
   }, []);
 
-  const onSubmit = useCallback(() => {}, []);
+  const onSubmit = useCallback((e: Event) => {
+    e.preventDefault();
+    dispatch(createPassword(password));
+  }, []);
 
   return (
     <div class="h-screen flex justify-center align-middle flex-col max-w-screen-sm mx-auto">
@@ -37,9 +46,9 @@ export function SetKeyringPassword() {
             <label class="input-group">
               <span>Password</span>
               <input
-                value={inputValue}
+                value={password}
                 onInput={(e) =>
-                  setInputValue((e.target as HTMLInputElement).value)
+                  setPassword((e.target as HTMLInputElement).value)
                 }
                 type="password"
                 placeholder="keep it strong"
