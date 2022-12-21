@@ -26,6 +26,7 @@ export default defineManifest(async (env) => ({
   sandbox: {
     pages: ['sandbox.html'],
   },
+  permissions: ['alarms'],
   content_scripts: [
     {
       js: ['src/content/index.tsx'],

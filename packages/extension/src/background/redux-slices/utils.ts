@@ -104,7 +104,9 @@ export function createBackgroundAsyncThunk<
   TypePrefix extends string,
   Returned,
   ThunkArg = void,
-  ThunkApiConfig = { extra: { mainServiceManager: MainServiceManager } }
+  ThunkApiConfig = {
+    extra: { mainServiceManager: MainServiceManager };
+  }
 >(
   typePrefix: TypePrefix,
   payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,

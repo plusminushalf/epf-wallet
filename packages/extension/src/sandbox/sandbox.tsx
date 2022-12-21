@@ -1,16 +1,10 @@
-import KeyringCommunicationService from './services/keyring-communication';
+// import './lockdown';
+import KeyringCommunicationService from './services/keyring';
+import { render } from 'preact';
+import { useEffect } from 'preact/hooks';
 import MainServiceManager, {
   MainServiceManagerServicesMap,
-} from './services/main';
-
-chrome.runtime.onInstalled.addListener((e) => {
-  if (e.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    const url = chrome.runtime.getURL('src/app/index.html#onboarding');
-    chrome.tabs.create({
-      url,
-    });
-  }
-});
+} from '@background/services/main';
 
 const serviceInitializer = async (
   mainServiceManager: MainServiceManager
@@ -23,13 +17,11 @@ const serviceInitializer = async (
   };
 };
 
-/**
- * Starts the API subsystems, including all services.
- */
 export async function startMain(): Promise<MainServiceManager> {
   const mainService = await MainServiceManager.create(
-    'background',
-    serviceInitializer
+    'sandbox',
+    serviceInitializer,
+    false
   );
 
   mainService.startService();
@@ -37,4 +29,19 @@ export async function startMain(): Promise<MainServiceManager> {
   return mainService.started();
 }
 
-startMain();
+const App = () => {
+  useEffect(() => {
+    let mainService: MainServiceManager;
+    startMain().then((_mainService) => (mainService = _mainService));
+
+    return () => {
+      if (mainService) {
+        mainService.stopService();
+      }
+    };
+  }, []);
+
+  return <></>;
+};
+
+render(<App />, document.getElementById('sandbox') as HTMLElement);

@@ -1,5 +1,6 @@
 import Emittery from 'emittery';
-import Browser, { Alarms } from 'webextension-polyfill';
+import { Alarms } from 'webextension-polyfill';
+import MainServiceManager from './main';
 import { Service, ServiceLifecycleEvents } from './types';
 
 /**
@@ -47,6 +48,10 @@ export type AlarmHandlerSchedule = {
  */
 export type AlarmHandlerScheduleMap = {
   [alarmName: string]: AlarmHandlerSchedule;
+};
+
+export type BaseServiceCreateProps = {
+  mainServiceManager?: MainServiceManager;
 };
 
 export default abstract class BaseService<Events extends ServiceLifecycleEvents>
@@ -134,7 +139,7 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
     const scheduleEntries = Object.entries(this.alarmSchedules);
 
     scheduleEntries.forEach(([name, { schedule, runAtStart, handler }]) => {
-      Browser.alarms.create(name, schedule);
+      chrome.alarms.create(name, schedule);
 
       if (runAtStart) {
         handler();
@@ -142,7 +147,7 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
     });
 
     if (scheduleEntries.length > 0) {
-      Browser.alarms.onAlarm.addListener(this.handleAlarm);
+      chrome.alarms.onAlarm.addListener(this.handleAlarm);
     }
   }
 
@@ -154,10 +159,10 @@ export default abstract class BaseService<Events extends ServiceLifecycleEvents>
   protected async internalStopService(): Promise<void> {
     const scheduleNames = Object.keys(this.alarmSchedules);
 
-    scheduleNames.forEach((alarmName) => Browser.alarms.clear(alarmName));
+    scheduleNames.forEach((alarmName) => chrome.alarms.clear(alarmName));
 
     if (scheduleNames.length > 0) {
-      Browser.alarms.onAlarm.removeListener(this.handleAlarm);
+      chrome.alarms.onAlarm.removeListener(this.handleAlarm);
     }
   }
 
