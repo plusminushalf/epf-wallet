@@ -1,4 +1,16 @@
+import {
+  keyringLocked,
+  keyringUnlocked,
+  vaultUpdate,
+} from '@background/redux-slices/keyrings';
+import {
+  ChromeMessages,
+  CreatePasswordChromeMessage,
+  UnlockedKeyringChromeMessage,
+  UnlockKeyringChromeMessage,
+} from '@common-types/chrome-messages';
 import { Keyring, KeyringMetadata } from '@common-types/keyrings';
+import { VaultState } from '@sandbox/services/keyring/keyring-controller';
 import BaseService, { BaseServiceCreateProps } from '../base';
 import MainServiceManager from '../main';
 import { ServiceLifecycleEvents } from '../types';
@@ -45,18 +57,60 @@ export default class KeyringCommunicationService extends BaseService<Events> {
     chrome.runtime.onMessage.removeListener(this.handleChromeMessage);
   };
 
+  sendChromeMessages = (message: ChromeMessages<any>) => {
+    chrome.runtime.sendMessage(message);
+  };
+
   createPassword = async (password: string) => {
-    chrome.runtime.sendMessage({
+    const message: ChromeMessages<CreatePasswordChromeMessage> = {
       type: 'keyring/createPassword',
-      password: password,
-    });
+      data: {
+        password,
+      },
+    };
+    this.sendChromeMessages(message);
+  };
+
+  unlockKeyring = async (password: string) => {
+    const message: ChromeMessages<UnlockKeyringChromeMessage> = {
+      type: 'keyring/unlock',
+      data: {
+        password,
+      },
+    };
+    this.sendChromeMessages(message);
+  };
+
+  keyringUnlocked = async ({ storeState }: UnlockedKeyringChromeMessage) => {
+    if (storeState.isUnlocked) {
+      this.mainServiceManager.store?.dispatch(keyringUnlocked());
+    }
+  };
+
+  keyringLocked = async () => {
+    this.mainServiceManager.store?.dispatch(keyringLocked());
+  };
+
+  vaultUpdate = async ({ vault }: { vault: VaultState }) => {
+    this.mainServiceManager.store?.dispatch(vaultUpdate({ vault }));
   };
 
   handleChromeMessage: MessageRecievingHandler = async (
-    message: any,
+    message: ChromeMessages<any>,
     sender: chrome.runtime.MessageSender,
     sendResponse: Function
-  ) => {};
+  ) => {
+    if (sender.id !== chrome.runtime.id) return;
+
+    switch (message.type) {
+      case 'keyring/unlocked':
+        return sendResponse(this.keyringUnlocked(message.data));
+      case 'keyring/locked':
+        return sendResponse(this.keyringLocked());
+      case 'keyring/vaultUpdate':
+        return sendResponse(this.vaultUpdate(message.data));
+    }
+  };
 
   static async create({
     mainServiceManager,

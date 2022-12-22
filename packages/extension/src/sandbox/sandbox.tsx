@@ -5,22 +5,29 @@ import { useEffect } from 'preact/hooks';
 import MainServiceManager, {
   MainServiceManagerServicesMap,
 } from '@background/services/main';
+import { VaultState } from './services/keyring/keyring-controller';
 
-const serviceInitializer = async (
-  mainServiceManager: MainServiceManager
-): Promise<MainServiceManagerServicesMap> => {
-  const keyringCommunicationService = await KeyringCommunicationService.create({
-    mainServiceManager: mainServiceManager,
-  });
-  return {
-    [KeyringCommunicationService.name]: keyringCommunicationService,
+const serviceInitializer =
+  (vault: VaultState) =>
+  async (
+    mainServiceManager: MainServiceManager
+  ): Promise<MainServiceManagerServicesMap> => {
+    const keyringCommunicationService =
+      await KeyringCommunicationService.create({
+        mainServiceManager: mainServiceManager,
+        initialState: vault,
+      });
+    return {
+      [KeyringCommunicationService.name]: keyringCommunicationService,
+    };
   };
-};
 
-export async function startMain(): Promise<MainServiceManager> {
+export async function startMain(
+  vault: VaultState
+): Promise<MainServiceManager> {
   const mainService = await MainServiceManager.create(
     'sandbox',
-    serviceInitializer,
+    serviceInitializer(vault),
     false
   );
 
@@ -29,10 +36,10 @@ export async function startMain(): Promise<MainServiceManager> {
   return mainService.started();
 }
 
-const App = () => {
+const App = (vault: VaultState) => {
   useEffect(() => {
     let mainService: MainServiceManager;
-    startMain().then((_mainService) => (mainService = _mainService));
+    startMain(vault).then((_mainService) => (mainService = _mainService));
 
     return () => {
       if (mainService) {
@@ -44,4 +51,13 @@ const App = () => {
   return <></>;
 };
 
-render(<App />, document.getElementById('sandbox') as HTMLElement);
+const setupSandbox = ({ vault }: VaultState) => {
+  render(
+    <App vault={vault} />,
+    document.getElementById('sandbox') as HTMLElement
+  );
+};
+
+window.addEventListener('message', ({ data }: { data: string }) => {
+  setupSandbox({ vault: data });
+});

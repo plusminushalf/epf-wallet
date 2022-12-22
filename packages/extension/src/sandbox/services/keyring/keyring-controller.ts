@@ -4,7 +4,7 @@ import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
 // TODO: Stop using `events`, and remove the notice about this from the README
 // eslint-disable-next-line import/no-nodejs-modules
-// import { EventEmitter } from 'events';
+import { EventEmitter } from 'events';
 import { ObservableStore } from './obs-store';
 import { UserOperationStruct } from '@account-abstraction/contracts';
 
@@ -81,7 +81,7 @@ export type keyringBuilders = {
 
 type KeyringSerialisedStateForMemStore = { type: string; accounts: string[] };
 
-type MemStore = {
+export type StoreState = {
   isUnlocked: boolean;
   keyringTypes: string[];
   keyrings: KeyringSerialisedStateForMemStore[];
@@ -90,7 +90,7 @@ type MemStore = {
 };
 
 export type KeyringControllerOptions = {
-  initState: object;
+  initState: VaultState;
   keyringBuilders?: keyringBuilders;
   encryptor?: typeof encryptor;
   cacheEncryptionKey?: boolean;
@@ -101,14 +101,18 @@ type KeyringSerialisedState = {
   data: any;
 };
 
-export class KeyringController {
+export type VaultState = {
+  vault: string;
+};
+
+export class KeyringController extends EventEmitter {
   //
   // PUBLIC METHODS
   //
 
   keyringBuilders: keyringBuilders[];
-  store: ObservableStore<any>;
-  memStore: ObservableStore<MemStore>;
+  store: ObservableStore<VaultState>;
+  memStore: ObservableStore<StoreState>;
   encryptor: typeof encryptor;
   keyrings: Keyring[];
   _unsupportedKeyrings: KeyringSerialisedState[];
@@ -116,7 +120,7 @@ export class KeyringController {
   password?: string;
 
   constructor(opts: KeyringControllerOptions) {
-    // super();
+    super();
     const initState = opts.initState || {};
     this.keyringBuilders = opts.keyringBuilders
       ? defaultKeyringBuilders.concat(opts.keyringBuilders)
@@ -153,8 +157,8 @@ export class KeyringController {
    *
    * @returns {object} The controller state.
    */
-  fullUpdate(): MemStore {
-    // this.emit('update', this.memStore.getState());
+  fullUpdate(): StoreState {
+    this.emit('update', this.memStore.getState());
     return this.memStore.getState();
   }
 
@@ -170,10 +174,10 @@ export class KeyringController {
    * @param {string} password - The password to encrypt the vault with.
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
-  async createNewVaultAndKeychain(password: string): Promise<MemStore> {
+  async createNewVault(password: string): Promise<StoreState> {
     this.password = password;
 
-    await this.createFirstKeyTree();
+    await this.persistAllKeyrings();
     this.setUnlocked();
     return this.fullUpdate();
   }
@@ -194,7 +198,7 @@ export class KeyringController {
   async createNewVaultAndRestore(
     password: string,
     seedPhrase: Uint8Array | string
-  ): Promise<MemStore> {
+  ): Promise<StoreState> {
     if (typeof password !== 'string') {
       throw new Error('Password must be text.');
     }
@@ -221,7 +225,7 @@ export class KeyringController {
    * @fires KeyringController#lock
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
-  async setLocked(): Promise<MemStore> {
+  async setLocked(): Promise<StoreState> {
     delete this.password;
 
     // set locked
@@ -234,7 +238,7 @@ export class KeyringController {
     // remove keyrings
     this.keyrings = [];
     await this._updateMemStoreKeyrings();
-    // this.emit('lock');
+    this.emit('lock');
     return this.fullUpdate();
   }
 
@@ -251,7 +255,7 @@ export class KeyringController {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
-  async submitPassword(password: string): Promise<MemStore> {
+  async submitPassword(password: string): Promise<StoreState> {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.setUnlocked();
@@ -272,7 +276,7 @@ export class KeyringController {
   async submitEncryptionKey(
     encryptionKey: string,
     encryptionSalt: string
-  ): Promise<MemStore> {
+  ): Promise<StoreState> {
     this.keyrings = await this.unlockKeyrings(
       undefined,
       encryptionKey,
@@ -403,10 +407,10 @@ export class KeyringController {
    * @param {Keyring} selectedKeyring - The currently selected keyring.
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
-  async addNewAccount(selectedKeyring: Keyring): Promise<MemStore> {
+  async addNewAccount(selectedKeyring: Keyring): Promise<StoreState> {
     const accounts = await selectedKeyring.addAccounts(1);
     accounts.forEach((hexAccount) => {
-      //   this.emit('newAccount', hexAccount);
+      this.emit('newAccount', hexAccount);
     });
 
     await this.persistAllKeyrings();
@@ -438,13 +442,13 @@ export class KeyringController {
    * @param {string} address - The address of the account to remove.
    * @returns {Promise<void>} A Promise that resolves if the operation was successful.
    */
-  async removeAccount(address: string): Promise<MemStore> {
+  async removeAccount(address: string): Promise<StoreState> {
     const keyring = await this.getKeyringForAccount(address);
 
     // Not all the keyrings support this, so we have to check
     if (typeof keyring.removeAccount === 'function') {
       keyring.removeAccount(address);
-      //   this.emit('removedAccount', address);
+      this.emit('removedAccount', address);
     } else {
       throw new Error(
         `Keyring ${keyring.type} doesn't support account removal operations`
@@ -638,7 +642,7 @@ export class KeyringController {
     }
 
     const hexAccount: string = normalizeAddress(firstAccount);
-    // this.emit('newVault', hexAccount);
+    this.emit('newVault', hexAccount);
   }
 
   /**
@@ -706,6 +710,7 @@ export class KeyringController {
     }
 
     this.store.updateState({ vault });
+    this.emit('vaultUpdate', { vault });
 
     // The keyring updates need to be announced before updating the encryptionKey
     // so that the updated keyring gets propagated to the extension first.
@@ -974,7 +979,7 @@ export class KeyringController {
    */
   setUnlocked(): void {
     this.memStore.updateState({ isUnlocked: true });
-    // this.emit('unlock');
+    this.emit('unlock');
   }
 
   /**
