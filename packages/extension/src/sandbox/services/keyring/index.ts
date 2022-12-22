@@ -157,7 +157,6 @@ export default class KeyringCommunicationService extends BaseService<Events> {
   };
 
   _stopService = async (): Promise<void> => {
-    console.log('here');
     this.removeEventListeners();
   };
 

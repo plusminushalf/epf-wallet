@@ -17,7 +17,12 @@ export function OnboardingSelectImplementation({}: OnboardingSelectImplementatio
 
   const selectImplementation = useCallback(
     (implementation: SCWImplementation) => {
-      route(`${RoutesMap[LoadSCWImplementation.name].path}/${implementation}`);
+      route(
+        RoutesMap[LoadSCWImplementation.name].path.replace(
+          ':implementation*',
+          implementation
+        )
+      );
     },
     []
   );

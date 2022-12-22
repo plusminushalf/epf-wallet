@@ -1,8 +1,5 @@
+import { ReduxStoreType } from '@background/redux-slices';
 import BaseService from './base';
-import { wrapStore } from 'webext-redux';
-import { initializeStore, ReduxStoreType } from '@background/redux-slices';
-
-export type BackgroundDispatch = ReduxStoreType['dispatch'];
 
 export interface MainServiceManagerServicesMap {
   [key: string]: BaseService<any>;
@@ -16,12 +13,8 @@ export default class MainServiceManager extends BaseService<never> {
   store?: ReduxStoreType;
   services?: MainServiceManagerServicesMap;
 
-  constructor(readonly name: string, createStore: boolean) {
+  constructor(readonly name: string) {
     super();
-    if (createStore) {
-      this.store = initializeStore(this);
-      wrapStore(this.store);
-    }
   }
 
   init = async (props: MainServiceManagerProps) => {
@@ -32,10 +25,9 @@ export default class MainServiceManager extends BaseService<never> {
     name: string,
     serviceInitializer: (
       mainServiceManager: MainServiceManager
-    ) => Promise<MainServiceManagerServicesMap>,
-    createStore: boolean = true
+    ) => Promise<MainServiceManagerServicesMap>
   ) {
-    const mainServiceManager = new this(name, createStore);
+    const mainServiceManager = new this(name);
 
     await mainServiceManager.init({
       services: await serviceInitializer(mainServiceManager),

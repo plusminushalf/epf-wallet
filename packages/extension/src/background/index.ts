@@ -1,7 +1,6 @@
 import KeyringCommunicationService from './services/keyring-communication';
-import MainServiceManager, {
-  MainServiceManagerServicesMap,
-} from './services/main';
+import { MainServiceManagerServicesMap } from './services/main';
+import MainServiceManager from './services/mainWithStore';
 
 chrome.runtime.onInstalled.addListener((e) => {
   if (e.reason === chrome.runtime.OnInstalledReason.INSTALL) {

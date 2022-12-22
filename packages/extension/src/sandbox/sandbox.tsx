@@ -1,4 +1,4 @@
-// import './lockdown';
+import './lockdown';
 import KeyringCommunicationService from './services/keyring';
 import { render } from 'preact';
 import { useEffect } from 'preact/hooks';
@@ -27,8 +27,7 @@ export async function startMain(
 ): Promise<MainServiceManager> {
   const mainService = await MainServiceManager.create(
     'sandbox',
-    serviceInitializer(vault),
-    false
+    serviceInitializer(vault)
   );
 
   mainService.startService();
