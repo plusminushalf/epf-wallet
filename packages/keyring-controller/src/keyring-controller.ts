@@ -1,14 +1,14 @@
 import * as encryptor from '@metamask/browser-passworder';
+// @ts-ignore
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
+// @ts-ignore
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-// TODO: Stop using `events`, and remove the notice about this from the README
-// eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import { ObservableStore } from './obs-store';
 import { UserOperationStruct } from '@account-abstraction/contracts';
 
-const defaultKeyringBuilders: keyringBuilders[] = [
+const defaultKeyringBuilders: keyringBuilder[] = [
   keyringBuilderFactory(SimpleKeyring),
   keyringBuilderFactory(HdKeyring),
 ];
@@ -37,7 +37,7 @@ export interface Keyring {
   deserialize: (data: object) => Promise<void>;
   addAccounts: (numberOfAccounts?: number) => Promise<string[]>;
   getAccounts: () => Promise<string[]>;
-  signTransaction: (
+  signUserOperation: (
     address: string,
     userOperation: Partial<UserOperationStruct>,
     options?: object
@@ -68,13 +68,13 @@ export interface Keyring {
   ) => Promise<Buffer>;
   getAppKeyAddress: (_address: string, origin: string) => Promise<string>;
   exportAccount: (address: string, options?: object) => Promise<string>;
-  generateRandomMnemonic?: () => void;
   init?: () => Promise<void>;
+  generateRandomMnemonic?: () => void;
   removeAccount?: (address: string) => void;
   forgetDevice?: () => any;
 }
 
-export type keyringBuilders = {
+export type keyringBuilder = {
   (): Keyring;
   type: string;
 };
@@ -91,7 +91,7 @@ export type StoreState = {
 
 export type KeyringControllerOptions = {
   initState: VaultState;
-  keyringBuilders?: keyringBuilders;
+  keyringBuilders?: keyringBuilder[];
   encryptor?: typeof encryptor;
   cacheEncryptionKey?: boolean;
 };
@@ -110,7 +110,7 @@ export class KeyringController extends EventEmitter {
   // PUBLIC METHODS
   //
 
-  keyringBuilders: keyringBuilders[];
+  keyringBuilders: keyringBuilder[];
   store: ObservableStore<VaultState>;
   memStore: ObservableStore<StoreState>;
   encryptor: typeof encryptor;
@@ -486,7 +486,7 @@ export class KeyringController extends EventEmitter {
   ): Promise<object> {
     const fromAddress = normalizeAddress(_fromAddress);
     const keyring = await this.getKeyringForAccount(fromAddress);
-    return await keyring.signTransaction(fromAddress, ethTx, opts);
+    return await keyring.signUserOperation(fromAddress, ethTx, opts);
   }
 
   /**
@@ -844,7 +844,7 @@ export class KeyringController extends EventEmitter {
    * @param {string} type - The type whose class to get.
    * @returns {Keyring|undefined} The class, if it exists.
    */
-  getKeyringBuilderForType(type: string): keyringBuilders | undefined {
+  getKeyringBuilderForType(type: string): keyringBuilder | undefined {
     return this.keyringBuilders.find(
       (keyringBuilder) => keyringBuilder.type === type
     );
@@ -1036,7 +1036,7 @@ export class KeyringController extends EventEmitter {
  * @param {Keyring} Keyring - The Keyring class for the builder.
  * @returns {Function} A builder function for the given Keyring.
  */
-export function keyringBuilderFactory(Keyring: any): keyringBuilders {
+export function keyringBuilderFactory(Keyring: any): keyringBuilder {
   const builder = () => new Keyring();
 
   builder.type = Keyring.type;

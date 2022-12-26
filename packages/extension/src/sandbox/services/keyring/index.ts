@@ -12,7 +12,7 @@ import {
   KeyringController,
   StoreState,
   VaultState,
-} from './keyring-controller';
+} from '@epf-wallet/keyring-controller';
 
 interface Events extends ServiceLifecycleEvents {
   createPassword: string;
@@ -144,6 +144,7 @@ export default class KeyringCommunicationService extends BaseService<Events> {
       initState: initialState || {
         vault: '',
       },
+      keyringBuilders: [],
     });
 
     return new KeyringCommunicationService(

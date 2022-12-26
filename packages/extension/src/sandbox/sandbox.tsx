@@ -5,7 +5,7 @@ import { useEffect } from 'preact/hooks';
 import MainServiceManager, {
   MainServiceManagerServicesMap,
 } from '@background/services/main';
-import { VaultState } from './services/keyring/keyring-controller';
+import { VaultState } from '@epf-wallet/keyring-controller';
 
 const serviceInitializer =
   (vault: VaultState) =>

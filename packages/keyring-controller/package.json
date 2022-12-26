@@ -1,0 +1,21 @@
+{
+  "name": "@epf-wallet/keyring-controller",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
+  "repository": "https://github.com/plusminushalf/epf-wallet",
+  "author": "Garvit Khatri <garvitdelhi@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@metamask/browser-passworder": "^4.0.2",
+    "@metamask/eth-hd-keyring": "^5.0.1",
+    "@metamask/eth-sig-util": "^5.0.2",
+    "@metamask/eth-simple-keyring": "^5.0.0",
+    "@metamask/safe-event-emitter": "^2.0.0"
+  }
+}
