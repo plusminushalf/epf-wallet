@@ -1,4 +1,4 @@
-import KeyringCommunicationService from './services/keyring-communication';
+// import KeyringCommunicationService from '../app/services/keyring-communication';
 import { MainServiceManagerServicesMap } from './services/main';
 import MainServiceManager from './services/mainWithStore';
 
@@ -14,11 +14,11 @@ chrome.runtime.onInstalled.addListener((e) => {
 const serviceInitializer = async (
   mainServiceManager: MainServiceManager
 ): Promise<MainServiceManagerServicesMap> => {
-  const keyringCommunicationService = await KeyringCommunicationService.create({
-    mainServiceManager: mainServiceManager,
-  });
+  //   const keyringCommunicationService = await KeyringCommunicationService.create({
+  //     mainServiceManager: mainServiceManager,
+  //   });
   return {
-    [KeyringCommunicationService.name]: keyringCommunicationService,
+    // [KeyringCommunicationService.name]: keyringCommunicationService,
   };
 };
 

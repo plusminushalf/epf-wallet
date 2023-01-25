@@ -1,3 +1,4 @@
+import { useKeyringCommunicationService } from '@app/hooks/keyring';
 import {
   useAreKeyringsUnlocked,
   useBackgroundDispatch,
@@ -7,9 +8,10 @@ import { useCallback, useEffect } from 'preact/hooks';
 import { usePassword } from './use-password';
 
 export function UnlockKeyring() {
+  const keyringCommunicationService = useKeyringCommunicationService();
+
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false);
   const [passwordState, dispatchPasswordAction] = usePassword();
-  const dispatchBackground = useBackgroundDispatch();
 
   useEffect(() => {
     if (areKeyringsUnlocked) {
@@ -21,7 +23,9 @@ export function UnlockKeyring() {
     async (e: Event) => {
       e.preventDefault();
       if (!passwordState.valid) return;
-      await dispatchBackground(unlockKeyring(passwordState.password ?? ''));
+      await keyringCommunicationService.unlockKeyring(
+        passwordState.password || ''
+      );
       dispatchPasswordAction({
         type: 'setErrorMessage',
         errorMessage: 'Invalid Password',

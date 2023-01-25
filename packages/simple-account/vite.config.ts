@@ -1,10 +1,6 @@
 import { defineConfig } from 'vite';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
-import preact from '@preact/preset-vite';
-import { crx } from '@crxjs/vite-plugin';
-import manifest from './manifest.config';
-import { ViteAliases } from 'vite-aliases';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,8 +12,7 @@ export default defineConfig({
         rollupNodePolyFill(),
       ],
       input: {
-        app: 'src/app/index.html',
-        sandbox: 'src/sandbox/sandbox.html',
+        app: 'src/index.ts',
       },
     },
   },
@@ -39,11 +34,4 @@ export default defineConfig({
   define: {
     global: {},
   },
-  plugins: [
-    ViteAliases(),
-    preact(),
-    crx({
-      manifest,
-    }),
-  ],
 });

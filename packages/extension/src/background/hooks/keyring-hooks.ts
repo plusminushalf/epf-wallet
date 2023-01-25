@@ -6,9 +6,10 @@ import RoutesMap from '@app/routes/routes';
 import { SetKeyringPassword, UnlockKeyring } from '@app/pages/keyrings';
 import { BackgroundDispatch } from '@background/services/main';
 import { useDispatch } from 'react-redux';
+import { KeyringView } from '@epf-wallet/keyring-controller';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AsyncifyFn<K> = K extends (...args: any[]) => any
+export type AsyncifyFn<K> = K extends (...args: any[]) => any
   ? (...args: Parameters<K>) => Promise<ReturnType<K>>
   : never;
 
@@ -32,7 +33,6 @@ export const useAreKeyringsUnlocked = (redirectIfNot: boolean): boolean => {
       typeof redirectTarget !== 'undefined' &&
       currentUrl !== redirectTarget
     ) {
-      console.log(redirectTarget);
       route(redirectTarget);
     }
   });

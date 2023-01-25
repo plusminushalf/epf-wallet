@@ -1,17 +1,12 @@
 import * as encryptor from '@metamask/browser-passworder';
-// @ts-ignore
-import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-// @ts-ignore
-import SimpleKeyring from '@metamask/eth-simple-keyring';
 import { EventEmitter } from 'events';
 import { ObservableStore } from './obs-store';
 import { UserOperationStruct } from '@account-abstraction/contracts';
+import { ethers } from 'ethers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 
-const defaultKeyringBuilders: keyringBuilder[] = [
-  keyringBuilderFactory(SimpleKeyring),
-  keyringBuilderFactory(HdKeyring),
-];
+const defaultKeyringBuilders: keyringBuilder[] = [];
 
 const KEYRINGS_TYPE_MAP = {
   HD_KEYRING: 'HD Key Tree',
@@ -31,51 +26,96 @@ function stripHexPrefix(address: string) {
   return address;
 }
 
-export interface Keyring {
-  type: string;
-  serialize: () => Promise<object>;
-  deserialize: (data: object) => Promise<void>;
-  addAccounts: (numberOfAccounts?: number) => Promise<string[]>;
-  getAccounts: () => Promise<string[]>;
-  signUserOperation: (
+export type KeyringInputError = {
+  name: string;
+  error: boolean;
+  message: string;
+};
+
+export type KeyringViewInputFieldValue = {
+  name: string;
+  value: any;
+};
+
+export type KeyringViewInputField = {
+  type: 'input' | 'QR' | '...etc';
+  name: string; // any unique name for this input
+  displayName: string;
+  displayDescription: string;
+  placeholder: string;
+  defaultValue: any;
+};
+
+export type KeyringView = {
+  title: string;
+  description: string;
+  inputs: Array<KeyringViewInputField>;
+  isValid: (
+    inputs: Array<KeyringViewInputFieldValue>
+  ) => Promise<Array<KeyringInputError>>;
+};
+
+export type KeyringViewUserInput = {
+  // name key is KeyringViewInputField.name
+  [name: string]: any;
+};
+
+export abstract class Keyring {
+  abstract type: string;
+  constructor(
+    readonly entryPointAddress: string,
+    readonly ethersJsonProvider: JsonRpcProvider
+  ) {}
+  abstract serialize: () => Promise<object>;
+  abstract deserialize: (data: any) => Promise<void>;
+  abstract addAccount: (userInputs: KeyringViewUserInput) => Promise<string[]>;
+  abstract getAccounts: () => Promise<string[]>;
+  abstract defineNewAccountView: () => Promise<KeyringView | undefined>;
+  abstract signUserOperation: (
     address: string,
     userOperation: Partial<UserOperationStruct>,
     options?: object
   ) => Promise<UserOperationStruct>;
-  signMessage: (
+  abstract signMessage: (
     address: string,
     data: any,
     options?: object
   ) => Promise<Buffer>;
-  signPersonalMessage: (
+  abstract signPersonalMessage: (
     address: string,
     data: any,
     options?: object
   ) => Promise<Buffer>;
-  getEncryptionPublicKey: (
+  abstract getEncryptionPublicKey: (
     address: string,
     options?: object
   ) => Promise<Buffer>;
-  decryptMessage: (
-    address: string,
-    data: any,
-    options?: object
-  ) => Promise<Buffer>;
-  signTypedData: (
+  abstract decryptMessage: (
     address: string,
     data: any,
     options?: object
   ) => Promise<Buffer>;
-  getAppKeyAddress: (_address: string, origin: string) => Promise<string>;
-  exportAccount: (address: string, options?: object) => Promise<string>;
-  init?: () => Promise<void>;
-  generateRandomMnemonic?: () => void;
-  removeAccount?: (address: string) => void;
-  forgetDevice?: () => any;
+  abstract signTypedData: (
+    address: string,
+    data: any,
+    options?: object
+  ) => Promise<Buffer>;
+  abstract getAppKeyAddress: (
+    _address: string,
+    origin: string
+  ) => Promise<string>;
+  abstract exportAccount: (
+    address: string,
+    options?: object
+  ) => Promise<string>;
+  abstract init?: () => Promise<void>;
+  abstract generateRandomMnemonic?: () => void;
+  abstract removeAccount?: (address: string) => void;
+  abstract forgetDevice?: () => any;
 }
 
 export type keyringBuilder = {
-  (): Keyring;
+  (entryPointAddress: string, provider: JsonRpcProvider): Keyring;
   type: string;
 };
 
@@ -90,10 +130,12 @@ export type StoreState = {
 };
 
 export type KeyringControllerOptions = {
+  entryPointAddress: string;
   initState: VaultState;
   keyringBuilders?: keyringBuilder[];
   encryptor?: typeof encryptor;
   cacheEncryptionKey?: boolean;
+  provider: string;
 };
 
 type KeyringSerialisedState = {
@@ -118,10 +160,13 @@ export class KeyringController extends EventEmitter {
   _unsupportedKeyrings: KeyringSerialisedState[];
   cacheEncryptionKey: boolean;
   password?: string;
+  entryPointAddress: string;
+  provider: JsonRpcProvider;
 
   constructor(opts: KeyringControllerOptions) {
     super();
     const initState = opts.initState || {};
+    this.entryPointAddress = opts.entryPointAddress;
     this.keyringBuilders = opts.keyringBuilders
       ? defaultKeyringBuilders.concat(opts.keyringBuilders)
       : defaultKeyringBuilders;
@@ -135,6 +180,7 @@ export class KeyringController extends EventEmitter {
       encryptionKey: undefined,
       encryptionSalt: undefined,
     });
+    this.provider = new ethers.providers.JsonRpcBatchProvider(opts.provider);
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
@@ -158,7 +204,7 @@ export class KeyringController extends EventEmitter {
    * @returns {object} The controller state.
    */
   fullUpdate(): StoreState {
-    this.emit('update', this.memStore.getState());
+    this.emit('vaultUpdate', this.memStore.getState());
     return this.memStore.getState();
   }
 
@@ -318,11 +364,6 @@ export class KeyringController extends EventEmitter {
   async addNewKeyring(type: string, opts?: any): Promise<Keyring> {
     const keyring = await this._newKeyring(type, opts);
 
-    if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
-      keyring.generateRandomMnemonic && keyring.generateRandomMnemonic();
-      await keyring.addAccounts();
-    }
-
     const accounts = await keyring.getAccounts();
     await this.checkForDuplicate(type, accounts);
 
@@ -407,8 +448,11 @@ export class KeyringController extends EventEmitter {
    * @param {Keyring} selectedKeyring - The currently selected keyring.
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
-  async addNewAccount(selectedKeyring: Keyring): Promise<StoreState> {
-    const accounts = await selectedKeyring.addAccounts(1);
+  async addNewAccount(
+    selectedKeyring: Keyring,
+    userInputs: KeyringViewUserInput
+  ): Promise<StoreState> {
+    const accounts = await selectedKeyring.addAccount(userInputs);
     accounts.forEach((hexAccount) => {
       this.emit('newAccount', hexAccount);
     });
@@ -678,6 +722,7 @@ export class KeyringController extends EventEmitter {
 
     let vault;
     let newEncryptionKey;
+    let newEncryptionSalt;
 
     if (this.cacheEncryptionKey) {
       if (this.password) {
@@ -689,6 +734,7 @@ export class KeyringController extends EventEmitter {
 
         vault = newVault;
         newEncryptionKey = exportedKeyString;
+        newEncryptionSalt = JSON.parse(newVault).salt;
       } else if (encryptionKey) {
         const key = await this.encryptor.importKey(encryptionKey);
         const vaultJSON = await this.encryptor.encryptWithKey(
@@ -710,7 +756,6 @@ export class KeyringController extends EventEmitter {
     }
 
     this.store.updateState({ vault });
-    this.emit('vaultUpdate', { vault });
 
     // The keyring updates need to be announced before updating the encryptionKey
     // so that the updated keyring gets propagated to the extension first.
@@ -718,8 +763,12 @@ export class KeyringController extends EventEmitter {
     // in the extension.
     await this._updateMemStoreKeyrings();
     if (newEncryptionKey) {
-      this.memStore.updateState({ encryptionKey: newEncryptionKey });
+      this.memStore.updateState({
+        encryptionKey: newEncryptionKey,
+        encryptionSalt: newEncryptionSalt,
+      });
     }
+    this.emit('vaultUpdate', { vault });
   }
 
   /**
@@ -830,6 +879,7 @@ export class KeyringController extends EventEmitter {
     // getAccounts also validates the accounts for some keyrings
     await keyring.getAccounts();
     this.keyrings.push(keyring);
+
     return keyring;
   }
 
@@ -1016,7 +1066,7 @@ export class KeyringController extends EventEmitter {
       throw new Error('Keyring Builder not found');
     }
 
-    const keyring = keyringBuilder();
+    const keyring = keyringBuilder(this.entryPointAddress, this.provider);
 
     await keyring.deserialize(data);
 
@@ -1037,7 +1087,7 @@ export class KeyringController extends EventEmitter {
  * @returns {Function} A builder function for the given Keyring.
  */
 export function keyringBuilderFactory(Keyring: any): keyringBuilder {
-  const builder = () => new Keyring();
+  const builder = (entryPointAddress: string) => new Keyring(entryPointAddress);
 
   builder.type = Keyring.type;
 

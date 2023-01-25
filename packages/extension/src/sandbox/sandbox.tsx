@@ -1,14 +1,21 @@
-import './lockdown';
+// import './lockdown';
 import KeyringCommunicationService from './services/keyring';
 import { render } from 'preact';
 import { useEffect } from 'preact/hooks';
 import MainServiceManager, {
   MainServiceManagerServicesMap,
 } from '@background/services/main';
-import { VaultState } from '@epf-wallet/keyring-controller';
+import { Vault } from '@background/redux-slices/keyrings';
+
+console.log(Buffer);
 
 const serviceInitializer =
-  (vault: VaultState) =>
+  (
+    vault: Vault,
+    keyrings: Array<{ id: string; addresses: Array<string> }>,
+    provider: string,
+    entryPointAddress: string
+  ) =>
   async (
     mainServiceManager: MainServiceManager
   ): Promise<MainServiceManagerServicesMap> => {
@@ -16,6 +23,9 @@ const serviceInitializer =
       await KeyringCommunicationService.create({
         mainServiceManager: mainServiceManager,
         initialState: vault,
+        keyrings: keyrings,
+        provider: provider,
+        entryPointAddress: entryPointAddress,
       });
     return {
       [KeyringCommunicationService.name]: keyringCommunicationService,
@@ -23,11 +33,14 @@ const serviceInitializer =
   };
 
 export async function startMain(
-  vault: VaultState
+  vault: Vault,
+  keyrings: Array<{ id: string; addresses: Array<string> }>,
+  provider: string,
+  entryPointAddress: string
 ): Promise<MainServiceManager> {
   const mainService = await MainServiceManager.create(
     'sandbox',
-    serviceInitializer(vault)
+    serviceInitializer(vault, keyrings, provider, entryPointAddress)
   );
 
   mainService.startService();
@@ -35,28 +48,67 @@ export async function startMain(
   return mainService.started();
 }
 
-const App = (vault: VaultState) => {
+const App = ({
+  vault,
+  keyrings,
+  provider,
+  entryPointAddress,
+}: {
+  vault: Vault;
+  keyrings: Array<{ id: string; addresses: Array<string> }>;
+  provider: string;
+  entryPointAddress: string;
+}) => {
   useEffect(() => {
     let mainService: MainServiceManager;
-    startMain(vault).then((_mainService) => (mainService = _mainService));
+    startMain(vault, keyrings, provider, entryPointAddress)
+      .then((_mainService) => (mainService = _mainService))
+      .then(() => window.parent.postMessage('success'));
 
     return () => {
       if (mainService) {
         mainService.stopService();
       }
     };
-  }, []);
+  }, [vault, keyrings, provider, entryPointAddress]);
 
   return <></>;
 };
 
-const setupSandbox = ({ vault }: VaultState) => {
+const setupSandbox = (
+  vault: Vault,
+  keyrings: Array<{ id: string; addresses: Array<string> }>,
+  provider: string,
+  entryPointAddress: string
+) => {
   render(
-    <App vault={vault} />,
+    <App
+      vault={vault}
+      keyrings={keyrings}
+      provider={provider}
+      entryPointAddress={entryPointAddress}
+    />,
     document.getElementById('sandbox') as HTMLElement
   );
 };
 
-window.addEventListener('message', ({ data }: { data: string }) => {
-  setupSandbox({ vault: data });
-});
+window.addEventListener(
+  'message',
+  ({
+    data,
+  }: {
+    data: {
+      vault: Vault;
+      keyrings: Array<{ id: string; addresses: Array<string> }>;
+      provider: string;
+      entryPointAddress: string;
+    };
+  }) => {
+    setupSandbox(
+      data.vault,
+      data.keyrings,
+      data.provider,
+      data.entryPointAddress
+    );
+  }
+);

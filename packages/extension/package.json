@@ -10,9 +10,9 @@
     "devtools": "redux-devtools --hostname=localhost --port=8000 --open"
   },
   "dependencies": {
-    "@epf-wallet/keyring-controller": "^0.1.0",
     "@account-abstraction/contracts": "^0.3.0",
     "@account-abstraction/sdk": "^0.3.0",
+    "@epf-wallet/keyring-controller": "^0.1.0",
     "@heroicons/react": "^2.0.13",
     "@reduxjs/toolkit": "^1.9.0",
     "buffer": "^6.0.3",
@@ -27,6 +27,7 @@
     "react-redux": "^7.2.9",
     "redux-persist": "^6.0.0",
     "ses": "^0.12.4",
+    "use-debounce": "^9.0.2",
     "webext-redux": "^2.1.9",
     "webextension-polyfill": "^0.10.0"
   },

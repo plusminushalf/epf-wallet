@@ -1,18 +1,24 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Keyring, KeyringMetadata } from '@common-types/keyrings';
 import { createBackgroundAsyncThunk } from './utils';
-import KeyringCommunicationService from '@background/services/keyring-communication';
-import { string } from 'joi';
-import { VaultState } from '@sandbox/services/keyring/keyring-controller';
+// import KeyringCommunicationService from '@app/services/keyring-communication';
+import { NewAccountView } from '@common-types/chrome-messages';
+import { RootState } from '.';
 
-type KeyringsState = {
+export type Vault = {
+  vault: string;
+  encryptionKey?: string;
+  encryptionSalt?: string;
+};
+
+export type KeyringsState = {
   keyrings: Keyring[];
   keyringMetadata: {
     [keyringId: string]: KeyringMetadata;
   };
   importing: false | 'pending' | 'done';
   status: 'locked' | 'unlocked' | 'uninitialized';
-  vault: VaultState;
+  vault: Vault;
   keyringToVerify: {
     id: string;
     mnemonic: string[];
@@ -34,17 +40,48 @@ const keyringsSlice = createSlice({
   name: 'account',
   initialState,
   reducers: {
-    keyringLocked: (state) => ({ ...state, status: 'locked' }),
+    keyringLocked: (state) => ({
+      ...state,
+      status: state.status !== 'uninitialized' ? 'locked' : 'uninitialized',
+      vault: {
+        vault: state.vault.vault,
+      },
+    }),
     keyringUnlocked: (state) => ({ ...state, status: 'unlocked' }),
     vaultUpdate: (
       state,
-      { payload: { vault } }: { payload: { vault: VaultState } }
-    ) => ({ ...state, vault }),
+      {
+        payload: vault,
+      }: {
+        payload: Vault;
+      }
+    ) => ({
+      ...state,
+      vault,
+      status:
+        !vault.encryptionKey && state.status !== 'uninitialized'
+          ? 'locked'
+          : state.status,
+    }),
+    setNewAccountView: (
+      state,
+      { payload: view }: { payload: NewAccountView }
+    ) => ({
+      ...state,
+      importing: false,
+      keyrings: [...state.keyrings, { id: view.implementation, addresses: [] }],
+      keyringMetadata: {
+        ...state.keyringMetadata,
+        [view.implementation]: {
+          view: view.view,
+          source: 'internal',
+        },
+      },
+    }),
   },
 });
 
-export const { keyringLocked, keyringUnlocked, vaultUpdate } =
-  keyringsSlice.actions;
+export const { keyringLocked } = keyringsSlice.actions;
 export default keyringsSlice.reducer;
 
 /**
@@ -53,24 +90,23 @@ export default keyringsSlice.reducer;
  * -------------------------------
  */
 
-export const createPassword = createBackgroundAsyncThunk(
-  'keyrings/createPassword',
-  async (password: string, { extra: { mainServiceManager } }) => {
-    (
-      mainServiceManager.getService(
-        KeyringCommunicationService.name
-      ) as KeyringCommunicationService
-    ).createPassword(password);
+export const vaultUpdate = createBackgroundAsyncThunk(
+  'keyring/vaultUpdate',
+  async (vault: Vault, { dispatch }) => {
+    dispatch(keyringsSlice.actions.vaultUpdate(vault));
   }
 );
 
-export const unlockKeyring = createBackgroundAsyncThunk(
-  'keyring/unlockKeyring',
-  async (password: string, { extra: { mainServiceManager } }) => {
-    (
-      mainServiceManager.getService(
-        KeyringCommunicationService.name
-      ) as KeyringCommunicationService
-    ).unlockKeyring(password);
+export const keyringUnlocked = createBackgroundAsyncThunk(
+  'keyring/keyringUnlocked',
+  async (keyringUnlocked: boolean, { dispatch }) => {
+    keyringUnlocked && dispatch(keyringsSlice.actions.keyringUnlocked());
+  }
+);
+
+export const setNewAccountView = createBackgroundAsyncThunk(
+  'keyring/setNewAccountView',
+  async (view: NewAccountView, { dispatch }) => {
+    dispatch(keyringsSlice.actions.setNewAccountView(view));
   }
 );

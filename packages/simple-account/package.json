@@ -1,0 +1,26 @@
+{
+  "name": "@epf-wallet/simple-account",
+  "version": "0.1.0",
+  "description": "Simple account implementation for epf wallet",
+  "repository": "https://github.com/plusminushalf/epf-wallet",
+  "author": "Garvit Khatri <garvitdelhi@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@account-abstraction/contracts": "^0.3.0",
+    "@account-abstraction/sdk": "^0.3.0",
+    "@epf-wallet/keyring-controller": "^0.1.0",
+    "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+    "@ethereumjs/util": "^8.0.3",
+    "@metamask/eth-simple-keyring": "^5.0.0",
+    "ethers": "^5.7.2",
+    "randombytes": "^2.1.0",
+    "rollup-plugin-node-polyfills": "^0.2.1",
+    "vite": "^4.0.4"
+  }
+}

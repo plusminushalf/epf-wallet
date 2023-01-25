@@ -1,21 +1,18 @@
-import {
-  useAreKeyringsUnlocked,
-  useBackgroundDispatch,
-} from '@background/hooks';
+import { useAreKeyringsUnlocked } from '@background/hooks';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
-import { useCallback, useEffect, useReducer, useState } from 'preact/hooks';
+import { useCallback, useEffect } from 'preact/hooks';
 import { OnboardingIntro } from '@app/pages/onboarding';
 import RoutesMap from '@app/routes/routes';
 import { route } from 'preact-router';
-import { createPassword } from '@background/redux-slices/keyrings';
 import { usePassword } from './use-password';
+import { useKeyringCommunicationService } from '@app/hooks/keyring';
 
 export function SetKeyringPassword() {
   const areKeyringsUnlocked = useAreKeyringsUnlocked(false);
 
   const [passwordState, dispatchPasswordAction] = usePassword();
 
-  const dispatchBackground = useBackgroundDispatch();
+  const keyringCommunicationService = useKeyringCommunicationService();
 
   useEffect(() => {
     if (areKeyringsUnlocked) {
@@ -31,7 +28,7 @@ export function SetKeyringPassword() {
     (e: Event) => {
       e.preventDefault();
       if (!passwordState.valid) return;
-      dispatchBackground(createPassword(passwordState.password ?? ''));
+      keyringCommunicationService.createPassword(passwordState.password || '');
     },
     [passwordState]
   );
