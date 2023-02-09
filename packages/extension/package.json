@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev-start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "devtools": "redux-devtools --hostname=localhost --port=8000 --open"

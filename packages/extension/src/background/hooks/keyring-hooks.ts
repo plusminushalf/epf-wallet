@@ -1,10 +1,10 @@
 import { useBackgroundSelector } from './redux-hooks';
 import { route, useRouter } from 'preact-router';
-import { selectKeyringStatus } from '@background/redux-slices/selectors/keyringsSelectors';
+import { selectKeyringStatus } from '../redux-slices/selectors/keyringsSelectors';
 import { useEffect } from 'preact/hooks';
 import RoutesMap from '@app/routes/routes';
 import { SetKeyringPassword, UnlockKeyring } from '@app/pages/keyrings';
-import { BackgroundDispatch } from '@background/services/main';
+import { BackgroundDispatch } from '../services/main';
 import { useDispatch } from 'react-redux';
 import { KeyringView } from '@epf-wallet/keyring-controller';
 

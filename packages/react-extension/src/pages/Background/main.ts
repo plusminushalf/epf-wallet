@@ -24,15 +24,11 @@ const serviceInitializer = async (
 /**
  * Starts the API subsystems, including all services.
  */
-export async function startMain(): Promise<MainServiceManager> {
+export default async function startMain(): Promise<MainServiceManager> {
   const mainService = await MainServiceManager.create(
     'background',
     serviceInitializer
   );
-
   mainService.startService();
-
   return mainService.started();
 }
-
-startMain();

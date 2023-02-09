@@ -1,13 +1,15 @@
 /// <reference types="chrome"/>
 import { useCallback, useEffect } from 'preact/hooks';
-import { useBackgroundSelector } from '@background/hooks';
-import { getAddressCount } from '@background/redux-slices/selectors/accountSelectors';
+// import { useBackgroundSelector } from '@background/hooks';
+// import { getAddressCount } from '@background/redux-slices/selectors/accountSelectors';
 import './popup.css';
 
 export function Popup() {
-  const hasAccounts = useBackgroundSelector(
-    (state) => getAddressCount(state) > 0
-  );
+  //   const hasAccounts = useBackgroundSelector(
+  //     (state) => getAddressCount(state) > 0
+  //   );
+
+  const hasAccounts = false;
 
   useEffect(() => {
     if (!hasAccounts) {
